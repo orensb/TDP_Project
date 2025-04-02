@@ -81,7 +81,7 @@ Exapmle of a Movie DTO:
     "releaseYear": 2025
     }
 ```
-<u>Key constraints:<u>
+<ins>Key constraints:</ins>
 - Cant create two movies with the same name
 
 ## Showtime Management
@@ -109,7 +109,7 @@ Example of Showtime DTO:
 - Showtime is the main DB, were the Booking ticket system is connecting to and update his DB.
 - We also have the Seat Matrix for the Showtime based on the size of the Theater, and flag if a seat is Available.
 
-<u>Key constraints:<u>
+<ins>Key constraints:</ins>
 - Automatic seat matrix generation based on theater capacity, all the seat are Available(A)
 - Overlapping showtime check, by same theater.
     the checking exclude the same showtime we when to update/create (one showtime doesnt ovelap with himself)
@@ -141,7 +141,7 @@ Example of Booking DTO:
 }
 ```
 
-<u>Booking process features:<u>
+<ins>Booking process features:</ins>
 - One by One operation (Atomic)
 - Seat status validation
 - UUID generation for bookings ID as response body.
