@@ -108,6 +108,7 @@ Example of Showtime DTO:
 ```
 - Showtime is the main DB, were the Booking ticket system is connecting to and update his DB.
 - We also have the Seat Matrix for the Showtime based on the size of the Theater, and flag if a seat is Available.
+- Adapt the Time of Starting and Ending with the Offset of the PC country (we received the UTC 00 as default) to adjust betwee the Request, Response and the DataBase saved & fetch
 
 <ins>Key constraints:</ins>
 - Automatic seat matrix generation based on theater capacity, all the seat are Available(A)
