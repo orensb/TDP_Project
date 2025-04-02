@@ -27,8 +27,15 @@ export class ShowtimesService {
   ) {}
 
   async create(createShowtimeDto: CreateShowtimeDto) {
-    // Validate movie exists
+    /*
+    Creating a New showtime for a movie (based on movie ID)
+    check if the movie id and theater name exist.
+    check if there is no overlap with the time (start and ending)
+
+    */
+
     console.log('Time start of Showtime: ' , createShowtimeDto.startTime)
+    //Check if movie exist
     const movie = await this.movieRepository.findOne({
       where: { id: createShowtimeDto.movieId },
     });
@@ -43,7 +50,7 @@ export class ShowtimesService {
     if (!theater) {
       throw new NotFoundException(`Theater "${createShowtimeDto.theater}" not found`);
     }
-      // Generate empty seat matrix
+    //Creating the Defualt seat Matrix with all seat Available
     const seatMatrix = [];
     for (let row = 0; row < theater.rows; row++) {
       const rowSeats = [];
@@ -54,23 +61,21 @@ export class ShowtimesService {
       seatMatrix.push(rowSeats);
     }
 
-    // Check for overlapping showtimes
+    // Check for overlapping showtimes with the function
     await this.checkOverlappingShowtimes(
       createShowtimeDto.theater,
       createShowtimeDto.startTime,
       createShowtimeDto.endTime,
     );
 
-    // Create and save the showtime
+    // Addapt the Times to be saved and display like the input 
+    //Starting with saved to DB
     const startTimeReal = new Date(createShowtimeDto.startTime);
-    startTimeReal.setMinutes(startTimeReal.getMinutes() + startTimeReal.getTimezoneOffset()); // Normalize to local time
+    startTimeReal.setMinutes(startTimeReal.getMinutes() + startTimeReal.getTimezoneOffset()); 
 
     const endTimeReal = new Date(createShowtimeDto.endTime);
-    endTimeReal.setMinutes(endTimeReal.getMinutes() + endTimeReal.getTimezoneOffset()); // Normalize to local time
+    endTimeReal.setMinutes(endTimeReal.getMinutes() + endTimeReal.getTimezoneOffset()); 
     console.log(`Checking overlap for:  Start = ${startTimeReal}, End = ${endTimeReal}`);
-
-    // const startTimeReal = new Date(createShowtimeDto.startTime).toISOString(); // Converts to UTC
-    // const endTimeReal = new Date(createShowtimeDto.endTime).toISOString();
 
     const showtime = this.showtimeRepository.create({
       ...createShowtimeDto,
@@ -80,16 +85,17 @@ export class ShowtimesService {
     });
     
     const savedShowtime = await this.showtimeRepository.save(showtime);
+    //Change the time for the Display 
     const startISO = new Date(createShowtimeDto.startTime).toISOString(); // Converts to UTC
     const endISO = new Date(createShowtimeDto.endTime).toISOString();
-    // Map the saved showtime to the desired response format
+
     return {
-      id: savedShowtime.showtimeId, // Map showtimeId to id
-      price: (savedShowtime.price), // Ensure price is a number
-      movieId: savedShowtime.movieId, // Map movieid to movieId
-      theater: savedShowtime.theater, // Map theaterName to theater
-      startTime: startISO, // Convert to ISO string
-      endTime: endISO, // Convert to ISO string
+      id: savedShowtime.showtimeId, 
+      price: (savedShowtime.price), 
+      movieId: savedShowtime.movieId, 
+      theater: savedShowtime.theater,
+      startTime: startISO,
+      endTime: endISO, 
     };
 
   }
@@ -107,10 +113,11 @@ export class ShowtimesService {
       const endTimeReal = new Date(showtime.endTime);
       endTimeReal.setMinutes(endTimeReal.getMinutes() - endTimeReal.getTimezoneOffset());
   
+      // Response Body as the README file.
       return {
-        id: showtime.showtimeId, // Map showtimeId to id
+        id: showtime.showtimeId, 
       movieId: showtime.movieId,
-      price: showtime.price, // Ensure price is returned as a number
+      price: showtime.price, 
       theater: showtime.theater,
         startTime: startTimeReal,
         endTime: endTimeReal,
@@ -133,37 +140,14 @@ export class ShowtimesService {
     endTimeReal.setMinutes(endTimeReal.getMinutes() - endTimeReal.getTimezoneOffset());
   
     return {
-      id: showtime.showtimeId, // Map showtimeId to id
+      id: showtime.showtimeId, 
       movieId: showtime.movieId,
-      price: showtime.price, // Ensure price is returned as a number
+      price: showtime.price, 
       theater: showtime.theater,
       startTime: startTimeReal,
       endTime: endTimeReal,
     };
   }
-
-  // async findByMovie(movieTitle: string) {
-  //   const showtimes = await this.showtimeRepository.find({
-  //     where: { movieTitle },
-  //     select: ['id', 'movieTitle', 'theaterName', 'startTime', 'endTime', 'price','seatMatrix']
-  //   });
-  //   if (!showtimes.length) {
-  //     throw new NotFoundException(`No showtimes found for movie "${movieTitle}"`);
-  //   }
-  //   return showtimes.map(showtime => {
-  //     const startTimeReal = new Date(showtime.startTime);
-  //     startTimeReal.setMinutes(startTimeReal.getMinutes() - startTimeReal.getTimezoneOffset());
-  
-  //     const endTimeReal = new Date(showtime.endTime);
-  //     endTimeReal.setMinutes(endTimeReal.getMinutes() - endTimeReal.getTimezoneOffset());
-  
-  //     return {
-  //       ...showtime,
-  //       startTime: startTimeReal,
-  //       endTime: endTimeReal,
-  //     };
-  //   });
-  // }
 
   async findByTheaters(theater: string){
     const showtimes = await this.showtimeRepository.find({
@@ -177,6 +161,10 @@ export class ShowtimesService {
   }
 
   async update( showtimeId:number ,  updateShowtimeDto: UpdateShowtimeDto) {
+    /*
+    Update the showtime with the given Update detail.
+    check also for overlap (with exclude itslef)
+    */
     const showtime = await this.showtimeRepository.findOne({
       where: { showtimeId }
     });
@@ -192,8 +180,6 @@ export class ShowtimesService {
         throw new NotFoundException(`Theater "${updateShowtimeDto.theater}" not found`);
       }
     }
-
-   
 
     // Check for overlaps if updating time or theater
     if (updateShowtimeDto.startTime || updateShowtimeDto.endTime || updateShowtimeDto.theater) {
@@ -262,9 +248,13 @@ export class ShowtimesService {
     if (!showtime) {
       throw new NotFoundException(`No showtime found for movie "${showtimeId}"`);
     }
+    this.showtimeRepository.remove(showtime);
+
   }
 
   async getSeatMatrix( showtimeId:number) {
+
+    // Returning the Seat Matrix of a showtime
     const showtimes = await this.showtimeRepository.find({
       where: { showtimeId },
       select: ['showtimeId','movieId', 'price', 'theater', 'startTime', 'endTime','seatMatrix']
@@ -294,43 +284,43 @@ export class ShowtimesService {
     }
   }
   async hasOverlap(theater: string, startTime: Date, endTime: Date, excludeId?: number) {
-    // Ensure these are properly formatted Date objects
+    // Converting the Time
     const startTimeReal = new Date(startTime);
     startTimeReal.setMinutes(startTimeReal.getMinutes() + startTimeReal.getTimezoneOffset()); // Normalize to local time
 
     const endTimeReal = new Date(endTime);
     endTimeReal.setMinutes(endTimeReal.getMinutes() + endTimeReal.getTimezoneOffset()); // Normalize to local time
 
-    // const startTimeReal = new Date(startTime).toISOString(); // Converts to UTC
-    // const endTimeReal = new Date(endTime).toISOString();
+    
     console.log(`Checking overlap for theater: ${theater}`);
     console.log(`Start Time: ${startTimeReal}`);
     console.log(`End Time: ${endTimeReal}`);
   
+    // Checking for the Overlap for a showtime based on same theater
     const query = await this.showtimeRepository.createQueryBuilder('showtime')
       .where('showtime.theater = :theater', { theater })
       .andWhere(
         '(showtime.startTime <= :endTime AND showtime.endTime >= :startTime)',
         { startTime: startTimeReal, endTime: endTimeReal }
       );
-
+      //We exclud the updated/created showtime itself
       if (excludeId) {
         query.andWhere('showtime.showtimeId != :excludeId', { excludeId });
       }
     
       const overlappingShowtimes = await query.getMany();
     
-
+    // If we have a overlap with throw an error
     if (overlappingShowtimes.length > 0) {
       const overlappingDetails = overlappingShowtimes.map(showtime => {
         const start_overlap = new Date(showtime.startTime);
-        start_overlap.setMinutes(start_overlap.getMinutes() - start_overlap.getTimezoneOffset()); // Normalize to local time
+        start_overlap.setMinutes(start_overlap.getMinutes() - start_overlap.getTimezoneOffset()); 
     
         const end_overlap = new Date(showtime.endTime);
-        end_overlap.setMinutes(end_overlap.getMinutes() - end_overlap.getTimezoneOffset()); // Normalize to local time
+        end_overlap.setMinutes(end_overlap.getMinutes() - end_overlap.getTimezoneOffset()); 
         return {
-          start: start_overlap, // or use startTimeReal if you want the Date object instead of string
-          end: end_overlap, // or use endTimeReal if you want the Date object instead of string
+          start: start_overlap, 
+          end: end_overlap, 
         };
       });
 

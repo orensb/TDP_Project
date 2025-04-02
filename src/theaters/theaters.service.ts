@@ -12,6 +12,7 @@ export class TheatersService implements OnModuleInit {
   ) {}
 
   async onModuleInit() {
+    // Creating 5 Defualt Theater with same size
     const count = await this.theaterRepository.count();
     if (count === 0) {
       // Initialize theaters if none exist
