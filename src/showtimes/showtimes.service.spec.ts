@@ -135,9 +135,9 @@ describe('ShowtimesService', () => {
         price: 12.99
       };
 
-      showtimeRepository.find.mockResolvedValue([mockShowtime]);
+      showtimeRepository.findOne.mockResolvedValue(mockShowtime);
       const result = await service.findById(1);
-      expect(result[0]).toHaveProperty('id', 1);
+      expect(result).toHaveProperty('id', 1); // Changed from 'showtimeId' to 'id'
     });
 
     it('should throw NotFoundException for invalid ID', async () => {
@@ -176,6 +176,8 @@ describe('ShowtimesService', () => {
       
       const result = await service.remove(1);
       expect(result).toEqual(mockShowtime);
+      expect(showtimeRepository.remove).toHaveBeenCalledWith(mockShowtime);
+
     });
   });
 

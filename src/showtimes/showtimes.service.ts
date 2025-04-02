@@ -191,6 +191,8 @@ export class ShowtimesService {
 
         );
     }
+
+    // Converting the Time if it's existing
     let newStartTime = showtime.startTime;
     let newEndTime = showtime.endTime;
 
@@ -205,7 +207,7 @@ export class ShowtimesService {
     }
     console.log(`Start Time : ${newStartTime}`);
     console.log(`End Time : ${newEndTime}`);
-    // Update and save
+    // Update and save with the normlized time
     const updatedShowtime = {
         ...showtime,
         ...updateShowtimeDto,
@@ -214,6 +216,8 @@ export class ShowtimesService {
     };
 
     const savedShowtime =  await this.showtimeRepository.save(updatedShowtime);
+
+    // Changing the time with to the Display (differnece between the Fetch and Save)
     let startISO = new Date(showtime.startTime);
     startISO.setMinutes(startISO.getMinutes() - startISO.getTimezoneOffset());
 
@@ -230,25 +234,25 @@ export class ShowtimesService {
     }
    
     const showtime_for_return = {
-      id: savedShowtime.showtimeId, // Map showtimeId to id
-      price: (savedShowtime.price), // Ensure price is a number
-      movieId: savedShowtime.movieId, // Map movieid to movieId
-      theater: savedShowtime.theater, // Map theaterName to theater
-      startTime: startISO, // Convert to ISO string
-      endTime: endISO , // Convert to ISO string
+      id: savedShowtime.showtimeId, 
+      price: (savedShowtime.price), 
+      movieId: savedShowtime.movieId, 
+      theater: savedShowtime.theater, 
+      startTime: startISO, 
+      endTime: endISO ,
     };
-    // console.log(showtime_for_return);
     return showtime_for_return;
   }
 
   async remove(showtimeId: number) {
+    // Delete a showtime by it's ID
     const showtime = await this.showtimeRepository.findOne({
       where: { showtimeId }
     });
     if (!showtime) {
       throw new NotFoundException(`No showtime found for movie "${showtimeId}"`);
     }
-    this.showtimeRepository.remove(showtime);
+    return this.showtimeRepository.remove(showtime);
 
   }
 
