@@ -3,16 +3,16 @@ import { Showtime } from '../../showtimes/entities/showtime.entity';
 
 @Entity()
 export class Booking {
-  @PrimaryGeneratedColumn('uuid')
+  @PrimaryGeneratedColumn()
   id: string;
 
   @Column()
   showtimeId: number;
 
   @Column()
-  seatIdentifier: string;
+  seatNumber: number;
 
   @Column()
-  userName: string;
+  userId: string;
 
 } 

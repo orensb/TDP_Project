@@ -5,14 +5,21 @@ import { Theater } from '../../theaters/entities/theater.entity';
 
 @Entity()
 export class Showtime {
+
   @PrimaryGeneratedColumn()
-  id: number;
+  showtimeId: number;
 
   @Column()
-  movieTitle: string;
+  movieId: number;
+
+  @Column('decimal', { precision: 10, scale: 2 ,  transformer: {
+    to: (value: number) => value, // Store as is
+    from: (value: string) => parseFloat(value), // Convert to number when retrieving
+  }})
+  price: number;
 
   @Column()
-  theaterName: string;
+  theater: string;
 
   @Column()
   startTime: Date;
@@ -20,14 +27,11 @@ export class Showtime {
   @Column()
   endTime: Date;
 
-  @Column('decimal', { precision: 10, scale: 2 })
-  price: number;
-
   @Column('json')
   seatMatrix: {
-    seatId: string;
+    seatId: number;
     row: number;
-    column: string;
+    column: number;
     status: 'A' | 'N'; // Available or Not available
     userName?: string; // Optional: store who booked it
   }[][];
@@ -38,7 +42,7 @@ export class Showtime {
   @ManyToOne(() => Movie, (movie) => movie.showtimes, { onDelete: 'CASCADE' })
   movie: Movie;
 
-  @ManyToOne(() => Theater)
-  @JoinColumn({ name: 'theaterName', referencedColumnName: 'name' })
-  theater: Theater;
+  @ManyToOne(() => Theater, { onDelete: 'CASCADE' }) 
+  @JoinColumn({ name: 'theater', referencedColumnName: 'name' })
+  theater1: Theater;
 }

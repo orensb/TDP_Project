@@ -15,31 +15,35 @@ export class ShowtimesController {
   findAll() {
     return this.showtimesService.findAll();
   }
-  @Get('movie/:title')
-  findByMovie(@Param('title') title: string) {
-    return this.showtimesService.findByMovie(title);
+  @Get('/:id')
+  findById(@Param('id') id: number){
+    return this.showtimesService.findById(id);
   }
+
+  // @Get('movie/:title')
+  // findByMovie(@Param('title') title: string) {
+  //   return this.showtimesService.findByMovie(title);
+  // }
 
   @Get('theaters/:theaterName')
   findByTheaters(@Param('theaterName') theaterName:string){
     return this.showtimesService.findByTheaters(theaterName);
   }
 
-  @Post('update/movie/:title/:id')
+  @Post('update/:id')
   update(
-    @Param('title') title: string ,
     @Param('id') id: number,
      @Body() updateShowtimeDto: UpdateShowtimeDto) {
-    return this.showtimesService.update(title, id,updateShowtimeDto);
+    return this.showtimesService.update(id,updateShowtimeDto);
   }
 
-  @Delete('movie/:title')
-  remove(@Param('title') title: string) {
-    return this.showtimesService.remove(title);
+  @Delete('/:id')
+  remove(@Param('id') id: number) {
+    return this.showtimesService.remove(id);
   }
 
-  @Get('movie/:title/seats')
-  getSeats(@Param('title') title: string) {
-    return this.showtimesService.getSeatMatrix(title);
+  @Get('/:id/seats')
+  getSeats( @Param('id') id: number) {
+    return this.showtimesService.getSeatMatrix(id);
   }
 } 

@@ -22,6 +22,11 @@ export class TheatersService implements OnModuleInit {
           columns: 8,
         });
       }
+      await this.create({
+        name: 'Sample Theater',
+        rows: 10,
+        columns: 8,
+      }); 
     }
   }
 
@@ -36,5 +41,9 @@ export class TheatersService implements OnModuleInit {
 
   async findOne(id: number): Promise<Theater> {
     return this.theaterRepository.findOne({ where: { id } });
+  }
+  async remove(id: number) {
+    const movie = await this.findOne(id);
+    return this.theaterRepository.remove(movie);
   }
 } 

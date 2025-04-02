@@ -3,6 +3,7 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Repository, Connection } from 'typeorm';
 import { CreateBookingDto } from './dto/create-booking.dto';
 import { Showtime } from '../showtimes/entities/showtime.entity';
+import { v4 as uuidv4 } from 'uuid';
 
 @Injectable()
 export class BookingsService {
@@ -19,43 +20,39 @@ export class BookingsService {
     await queryRunner.startTransaction();
     
     try {
-      const normalizedStartTime = new Date(createBookingDto.startTime);
+      const normalizedStartTime = new Date(createBookingDto.showtimeId);
+      normalizedStartTime.setMinutes(normalizedStartTime.getMinutes() + normalizedStartTime.getTimezoneOffset() )
 
       const showtime = await queryRunner.manager.findOne(Showtime, {
         where: {
-          movieTitle: createBookingDto.movieTitle,
-          theaterName: createBookingDto.theaterName,
-          startTime: normalizedStartTime, // Use normalized Date object
+          showtimeId: createBookingDto.showtimeId, // Ensure this matches the entity property name
         },
       });
     
       
       if (!showtime) {
         throw new NotFoundException(
-          `No showtime found for movie "${createBookingDto.movieTitle}" in theater "${createBookingDto.theaterName}" at ${createBookingDto.startTime}`
+          `No showtime found for showid "${createBookingDto.showtimeId}"`
         );
       }
       
-      const bookedSeats = [];
-      for (const seatIdentifier of createBookingDto.seatIdentifiers) {
         const result = await this.processBooking(
-          seatIdentifier,
+          createBookingDto.seatNumber,
           showtime,
-          createBookingDto.userName,
+          createBookingDto.userId ,
           queryRunner
         );
         if (!result.success) {
           throw new ConflictException(result.message);
         }
-        bookedSeats.push(result.seatInfo);
-      }
       await queryRunner.commitTransaction();
-
-    return {
-      success: true,
-      message: `Successfully booked ${bookedSeats.length} seats`,
-      bookedSeats,
-    };
+      return {
+       "bookingId": this.generateBookingId()
+      };
+    // return {
+    //   success: true,
+    //   message: `Successfully booked ${createBookingDto.seatNumber} seats`,
+    // };
   } catch (error) {
     await queryRunner.rollbackTransaction();
     throw error;
@@ -65,30 +62,30 @@ export class BookingsService {
 }
 
   private async processBooking(
-    seatIdentifier: string, 
+    seatNumber: number, 
     showtime: Showtime, 
-    userName: string,
+    userId : string ,
     queryRunner: any
   ) {
     try {
-      const { rowIndex, columnIndex, updatedSeat } = this.processSeatBooking(
-        seatIdentifier,
+      const { rowIndex, colIndex, updatedSeat } = this.processSeatBooking(
+        seatNumber,
         showtime,
-        userName
+        userId,
       );
   
       await queryRunner.manager.save(showtime);
   
       return {
         success: true,
-        message: `Successfully booked seat ${seatIdentifier}`,
+        message: `Successfully booked seat ${seatNumber}`,
         seatInfo: updatedSeat
       };
     } catch (error) {
       if (error instanceof ConflictException) {
         return {
           success: false,
-          message: `Seat ${seatIdentifier} is already booked. Please select a different seat.`
+          message: `Seat ${seatNumber} is already booked. Please select a different seat.`
         };
       } else {
         throw error; // Other errors should not be handled here
@@ -96,7 +93,9 @@ export class BookingsService {
     }
   }
   
-
+  private generateBookingId(): string {
+    return uuidv4();
+  }
   /**
    * Parse, validate, and update seat status in the showtime matrix
    * @param seatIdentifier The seat identifier in format [1-10][A-H]
@@ -104,38 +103,37 @@ export class BookingsService {
    * @param userName The name of the user booking the seat
    * @returns The seat coordinates and updated seat info
    */
-  private processSeatBooking(seatIdentifier: string, showtime: Showtime, userName: string) {
+  private processSeatBooking(seatNumber: number, showtime: Showtime , userId:string) {
     // Validate seat format
-    const regex = /^([1-9]|10)([A-H])$/;
-    if (!regex.test(seatIdentifier)) {
-      throw new BadRequestException('Invalid seat format. Must be [1-10][A-H]');
-    }
+    
     
     // Parse the seat identifier
-    const row = parseInt(seatIdentifier.match(/^([1-9]|10)/)[0]);
-    const column = seatIdentifier.charAt(seatIdentifier.length - 1);
-    const columnIndex = column.charCodeAt(0) - 65; // Convert A->0, B->1, etc.
+    const row = Math.floor(seatNumber / 10); // Extract the left digit as the row
+    const col = seatNumber % 10; // Extract the right digit as the column
+
     
     // Validate the seat exists in the matrix
-    if (row < 1 || row > showtime.seatMatrix.length || 
-        columnIndex < 0 || columnIndex >= showtime.seatMatrix[0].length) {
+    if (row < 0 || row >= showtime.seatMatrix.length || 
+        col < 1 || col > showtime.seatMatrix[0].length) {
+
       throw new BadRequestException('Invalid seat identifier for this theater');
     }
     
     // Check if seat is available
-    const rowIndex = row - 1;
-    if (showtime.seatMatrix[rowIndex][columnIndex].status === 'N') {
-      throw new ConflictException(`Seat ${seatIdentifier} is already booked`);
+    const rowIndex = row;
+    const colIndex = col - 1; // Adjust column index to be 0-based
+    if (showtime.seatMatrix[rowIndex][colIndex].status === 'N') {
+      throw new ConflictException(`Seat ${seatNumber} is already booked`);
     }
     
     // Update the seat status
-    showtime.seatMatrix[rowIndex][columnIndex].status = 'N';
-    showtime.seatMatrix[rowIndex][columnIndex].userName = userName;
+    showtime.seatMatrix[rowIndex][colIndex].status = 'N';
+    showtime.seatMatrix[rowIndex][colIndex].userName = userId
     
     return {
       rowIndex,
-      columnIndex,
-      updatedSeat: showtime.seatMatrix[rowIndex][columnIndex]
+      colIndex,
+      updatedSeat: showtime.seatMatrix[rowIndex][colIndex]
     };
   }
 }

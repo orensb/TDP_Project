@@ -6,6 +6,8 @@ services:
       POSTGRES_USER: popcorn-palace
       POSTGRES_PASSWORD: popcorn-palace
       POSTGRES_DB: popcorn-palace
+      synchronize: false
+
   #  volumes:
    #   - type: bind
    #     source: ./data

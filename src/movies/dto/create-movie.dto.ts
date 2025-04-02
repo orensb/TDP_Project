@@ -1,4 +1,4 @@
-import { IsNotEmpty, IsNumber, IsString, Min, Max, Length } from 'class-validator';
+import { IsNotEmpty, IsNumber, IsString, Min, Max, Length, IsPositive } from 'class-validator';
 
 export class CreateMovieDto {
   @IsNotEmpty()
@@ -19,7 +19,7 @@ export class CreateMovieDto {
 
   @IsNotEmpty()
   @IsNumber()
-  @Min(0)
+  @IsPositive()
   @Max(10)
   rating: number;
 

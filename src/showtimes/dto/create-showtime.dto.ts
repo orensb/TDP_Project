@@ -3,12 +3,17 @@ import { Type } from 'class-transformer';
 
 export class CreateShowtimeDto {
   @IsNotEmpty()
-  @IsString()
-  movieTitle: string;
+  @IsNumber()
+  movieId: number;
+
+  @IsNotEmpty()
+  @IsNumber()
+  @IsPositive()
+  price: number;
 
   @IsNotEmpty()
   @IsString()
-  theaterName: string;
+  theater: string;
 
   @IsNotEmpty()
   @Type(() => Date)
@@ -20,8 +25,4 @@ export class CreateShowtimeDto {
   @IsDate()
   endTime: Date;
 
-  @IsNotEmpty()
-  @IsNumber()
-  @IsPositive()
-  price: number;
 } 
