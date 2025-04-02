@@ -61,7 +61,7 @@ Coverage test: npm run test:cov
         Showtimes: /showtimes
         Bookings: /bookings
 ```
-### Movie Management
+## Movie Management
 ```
 
 | Endpoint                  | Method | Description                     |
@@ -81,7 +81,7 @@ Exapmle of a Movie DTO:
     "releaseYear": 2025
     }
 ```
-Key constraints:
+<u>Key constraints:<u>
 - Cant create two movies with the same name
 
 ## Showtime Management
@@ -109,12 +109,12 @@ Example of Showtime DTO:
 - Showtime is the main DB, were the Booking ticket system is connecting to and update his DB.
 - We also have the Seat Matrix for the Showtime based on the size of the Theater, and flag if a seat is Available.
 
-Key constraints:
+<u>Key constraints:<u>
 - Automatic seat matrix generation based on theater capacity, all the seat are Available(A)
 - Overlapping showtime check, by same theater.
     the checking exclude the same showtime we when to update/create (one showtime doesnt ovelap with himself)
 
-### Seat Matrix
+## Seat Matrix
 Based on Theater size, every showtime created, create a Defualt Seat Matrix, which corsponde the size.
 The seat Matrix detail:
 ```
@@ -141,7 +141,7 @@ Example of Booking DTO:
 }
 ```
 
-Booking process features:
+<u>Booking process features:<u>
 - One by One operation (Atomic)
 - Seat status validation
 - UUID generation for bookings ID as response body.
